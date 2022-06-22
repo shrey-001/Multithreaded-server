@@ -2,125 +2,91 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
-#include <errno.h>
 #include <string.h>
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <thread>
-#include <signal.h>
-#include <mutex>
+#include <pthread.h>
 #define MAX_LEN 200
-#define NUM_COLORS 6
-
-using namespace std;
-
-#define SERVERPORT 8989
 typedef struct sockaddr_in SA_IN ;
 typedef struct sockaddr SA ;
 
 
-bool exit_flag=false;
+using namespace std;
+
+#define SERVERPORT 8989
+
 thread t_send, t_recv;
-int client_socket;
 string def_col="\033[0m";
-string colors[]={"\033[31m", "\033[32m", "\033[33m", "\033[34m", "\033[35m", "\033[36m"};
+string colors="\033[31m";
 
 void catch_ctrl_c(int signal);
-string color(int code);
 void send_message(int client_socket);
-void recv_message(int client_socket);
+void recieve_message(int client_socket);
+
+int client_socket;
+bool exit_flag=false;
 
 int main()
 {
 	int client_socket = 0;
-    int valread, client_fd;
-    SA_IN serv_addr;
- 
-    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
-        printf("\n Socket creation error \n");
-        return -1;
-    }
- 
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_port = htons(SERVERPORT);
- 
+    int client_fd;
+    SA_IN server_address;
 
-    if (inet_pton(AF_INET, "127.0.0.1", &serv_addr.sin_addr)
-        <= 0) {
-        printf(
-            "\nInvalid address/ Address not supported \n");
+	//socket creation
+    if ((client_socket = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        cout<<"Socket creation error";
         return -1;
     }
  
-    if ((client_fd
-         = connect(client_socket, (struct sockaddr*)&serv_addr,
-                   sizeof(serv_addr)))
-        < 0) {
-        printf("\nConnection Failed \n");
+    server_address.sin_family = AF_INET;
+    server_address.sin_port = htons(SERVERPORT);
+ 
+	//convert IPv4 address to binary format
+    if (inet_pton(AF_INET, "127.0.0.1", &server_address.sin_addr)
+        <= 0) {
+        cout<<"Invalid address/ Address not supported";
         return -1;
     }
-	//signal(SIGINT, catch_ctrl_c);
+
+    if ((client_fd
+         = connect(client_socket, (struct sockaddr*)&server_address,
+                   sizeof(server_address)))< 0) {
+        cout<<"Connection Failed: ";
+        return -1;
+    }
 	char name[MAX_LEN];
 	cout<<"Enter your name : ";
 	cin.getline(name,MAX_LEN);
 	send(client_socket,name,sizeof(name),0);
 
-	cout<<colors[NUM_COLORS-1]<<"\n\t  ====== Welcome to the chat-room ======   "<<endl<<def_col;
+	cout<<"\n\t  ----- Welcome Everyone -----   "<<endl;
 
 	thread t1(send_message, client_socket);
-	thread t2(recv_message, client_socket);
+	thread t2(recieve_message, client_socket);
 
 	t_send=move(t1);
 	t_recv=move(t2);
 
-	if(t_send.joinable())
-		t_send.join();
-	if(t_recv.joinable())
-		t_recv.join();
+	if(t_send.joinable()) t_send.join();
+	if(t_recv.joinable()) t_recv.join();
 			
 	return 0;
 }
-
-// Handler for "Ctrl + C"
-void catch_ctrl_c(int signal) 
-{
-	char str[MAX_LEN]="#exit";
-	send(client_socket,str,sizeof(str),0);
-	exit_flag=true;
-	t_send.detach();
-	t_recv.detach();
-	close(client_socket);
-	exit(signal);
-}
-
-string color(int code)
-{
-	return colors[code%NUM_COLORS];
-}
-
 // Send message to everyone
 void send_message(int client_socket)
 {
-	while(1)
-	{
-		cout<<colors[1]<<"You : "<<def_col;
+	while(true){
+		cout<<colors<<"You : "<<def_col;
 		char str[MAX_LEN];
 		cin.getline(str,MAX_LEN);
-		send(client_socket,str,sizeof(str),0);
-		if(strcmp(str,"#exit")==0)
-		{
-			exit_flag=true;
-			t_recv.detach();	
-			close(client_socket);
-			return;
-		}	
+		send(client_socket,str,sizeof(str),0);	
 	}		
 }
-
-// Receive message
-void recv_message(int client_socket)
+// Recieve message
+void recieve_message(int client_socket)
 {
-	while(1)
+	while(true)
 	{
 		if(exit_flag)
 			return;
@@ -135,10 +101,10 @@ void recv_message(int client_socket)
 		    cout<<"\b";
 	    }
 		if(strcmp(name,"#NULL")!=0)
-			cout<<color(color_code)<<name<<" : "<<def_col<<str<<endl;
+			cout<<colors<<name<<" : "<<def_col<<str<<endl;
 		else
-			cout<<color(color_code)<<str<<endl;
-		cout<<colors[1]<<"You : "<<def_col;
+			cout<<colors<<str<<endl;
+		cout<<colors<<"You : "<<def_col;
 		fflush(stdout);
 	}	
 }
