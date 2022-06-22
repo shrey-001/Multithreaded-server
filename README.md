@@ -26,6 +26,13 @@ Run any number of clients you wish using this.
 ```
 You will be asked your name to register when you execute the ```./client```, enter your name and start messaging. 
 ## Internal Working
+
+![Demonstration](https://github.com/shrey-001/Multithreaded-server/blob/main/client-server.jpg)
+### Usage of libraries
+* <pthread.h> : Thread library, used for thread operation and mutex lock.
+* <sys/socket.h> : Socket Functions, types and constant.
+* <netinet/in.h> contains definitions for the internet protocol family
+* <arpa/inet.h> contains definitions for internet operations
 ### Server side
 * Socket is created using socket() function.
 * To reuse the address and port Setsockopt() is used.
@@ -37,8 +44,9 @@ You will be asked your name to register when you execute the ```./client```, ent
 ### Client Side
 * Client side socket is created using socket().
 * Then connect() system call connects the socket referred to by the client to the address specified by server_socket.
+* Two threads are created on client side, one for listning to the server(recieving messages from server) and other for sending messages.
 ## Learnings
-* **OS Concept** - Learned about process & thread, their differences and features.
+* **OS Concepts** - Learned about process & thread, their differences and features.
 * **Multithreading** - Learned about the concept of Multithreading and its working in UNIX/LINUX environment.
 * **Mutex Lock** - Learned about Mutex lock which is used for Process Synchronisation.
 * **Socket Programming** - learned how to create a client-server model using socket programming.
@@ -47,4 +55,5 @@ You will be asked your name to register when you execute the ```./client```, ent
 [Mutex lock for Linux Thread Synchronization - GeeksforGeeks](https://www.geeksforgeeks.org/mutex-lock-for-linux-thread-synchronization/) <br />
 [Socket Programming](https://www.geeksforgeeks.org/socket-programming-cc/) <br />
 [Multithreading in C/C++](https://www.geeksforgeeks.org/handling-multiple-clients-on-server-with-multithreading-using-socket-programming-in-c-cpp/) <br />
+[Header Files](https://www.ibm.com/docs/en/zos/2.1.0?topic=reference-header-files)
 
