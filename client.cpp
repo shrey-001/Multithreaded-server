@@ -18,9 +18,8 @@ using namespace std;
 
 thread t_send, t_recv;
 string def_col="\033[0m";
-string colors="\033[31m";
+string colors="\033[0m";
 
-void catch_ctrl_c(int signal);
 void send_message(int client_socket);
 void recieve_message(int client_socket);
 
